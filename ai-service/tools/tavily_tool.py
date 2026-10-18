@@ -7,17 +7,28 @@ import os
 from tavily import TavilyClient
 from dotenv import load_dotenv
 
+_root_env = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", ".env")
+load_dotenv(_root_env)
 load_dotenv()
 
-client = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
+_client = None
+
+def get_client():
+    global _client
+    if _client is None:
+        api_key = os.getenv("TAVILY_API_KEY")
+        _client = TavilyClient(api_key=api_key)
+    return _client
+
 
 
 def tavily_search(query: str) -> str:
     """Search the web using Tavily and return formatted results."""
 
     try:
-        response = client.search(query=query, max_results=5)
+        response = get_client().search(query=query, max_results=5)
     except Exception as e:
+
         return f"Error searching: {str(e)}"
 
     results = []

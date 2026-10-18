@@ -7,6 +7,8 @@ import os
 import requests
 from dotenv import load_dotenv
 
+_root_env = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", ".env")
+load_dotenv(_root_env)
 load_dotenv()
 
 API_KEY = os.getenv("AVIATIONSTACK_API_KEY")

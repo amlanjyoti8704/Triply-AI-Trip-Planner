@@ -24,6 +24,9 @@ from dotenv import load_dotenv
 from tools.tavily_tool import tavily_search
 from tools.flight_tool import search_flights
 
+# Load .env from project root or local dir
+_root_env = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env")
+load_dotenv(_root_env)
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
