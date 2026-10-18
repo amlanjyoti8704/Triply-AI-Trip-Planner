@@ -68,10 +68,12 @@ AGENT_META = {
 
 # ── SSE Stream ───────────────────────────────────────────────────────────────
 
+import threading
+
 async def plan_event_generator(query: str, thread_id: str):
     """
     Run the LangGraph pipeline in a background thread and yield SSE events
-    for each agent node that completes.
+    in real time as each agent node completes.
     """
     config = {"configurable": {"thread_id": thread_id}}
 
@@ -93,32 +95,45 @@ async def plan_event_generator(query: str, thread_id: str):
         }),
     }
 
+    loop = asyncio.get_running_loop()
+    queue = asyncio.Queue()
+
+    def run_pipeline():
+        try:
+            for chunk in langgraph_app.stream(
+                initial_state,
+                config=config,
+                stream_mode="updates",
+            ):
+                loop.call_soon_threadsafe(queue.put_nowait, ("chunk", chunk))
+            loop.call_soon_threadsafe(queue.put_nowait, ("done", None))
+        except Exception as e:
+            loop.call_soon_threadsafe(queue.put_nowait, ("error", e))
+
+    threading.Thread(target=run_pipeline, daemon=True).start()
+
+    collected = {
+        "flight_results": "",
+        "hotel_results": "",
+        "itinerary": "",
+        "final_response": "",
+        "llm_calls": 0,
+    }
+
     try:
-        # Run the synchronous LangGraph stream in a thread
-        def _stream():
-            return list(
-                langgraph_app.stream(
-                    initial_state,
-                    config=config,
-                    stream_mode="updates",
-                )
-            )
+        while True:
+            msg_type, payload = await queue.get()
 
-        chunks = await asyncio.to_thread(_stream)
+            if msg_type == "error":
+                raise payload
+            if msg_type == "done":
+                break
 
-        collected = {
-            "flight_results": "",
-            "hotel_results": "",
-            "itinerary": "",
-            "final_response": "",
-            "llm_calls": 0,
-        }
-
-        for chunk in chunks:
+            # Process chunk from completed agent node
+            chunk = payload
             for node_name, state_update in chunk.items():
                 meta = AGENT_META.get(node_name, {"icon": "🔧", "label": node_name, "description": ""})
 
-                # Extract the relevant data from each agent
                 agent_data = ""
                 if node_name == "flight_agent":
                     agent_data = state_update.get("flight_results", "")
@@ -136,7 +151,7 @@ async def plan_event_generator(query: str, thread_id: str):
 
                 collected["llm_calls"] = state_update.get("llm_calls", collected["llm_calls"])
 
-                # Yield agent completion event
+                # Yield agent completion event immediately
                 yield {
                     "event": "agent_update",
                     "data": json.dumps({
@@ -167,6 +182,7 @@ async def plan_event_generator(query: str, thread_id: str):
             "event": "pipeline_error",
             "data": json.dumps({"error": str(e)}),
         }
+
 
 
 # ── Routes ───────────────────────────────────────────────────────────────────

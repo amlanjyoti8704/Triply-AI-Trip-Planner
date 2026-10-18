@@ -13,12 +13,16 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const path = require("path");
 const travelRoutes = require("./routes/travel");
 
-dotenv.config({ path: "../.env" });
+// Support root .env or server/.env
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+dotenv.config();
 
 const app = express();
 const PORT = process.env.EXPRESS_PORT || 3001;
+
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || "http://localhost:8000";
 
 // ── Middleware ───────────────────────────────────────────────────────────────
