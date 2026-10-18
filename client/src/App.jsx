@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import TripForm from "./components/TripForm";
+import DestinationStrip from "./components/DestinationStrip";
 import AgentPipeline from "./components/AgentPipeline";
 import TravelPlan from "./components/TravelPlan";
 import { streamTravelPlan } from "./api/travelApi";
@@ -21,6 +22,8 @@ export default function App() {
   const [error, setError] = useState(null);
   const [lastQuery, setLastQuery] = useState("");
   const [lastThreadId, setLastThreadId] = useState("");
+  const [threadId, setThreadId] = useState("aarohi_user");
+  const [activeFormQuery, setActiveFormQuery] = useState("");
 
   const abortRef = useRef(null);
 
@@ -32,21 +35,29 @@ export default function App() {
     setIsLoading(false);
   };
 
-  const handleSubmit = (query, threadId) => {
-    // Reset state
+  const handleNewThread = () => {
+    const newId = `user_${Math.random().toString(36).substring(2, 8)}`;
+    setThreadId(newId);
+  };
+
+  const handleSelectDestination = (destQuery) => {
+    setActiveFormQuery(destQuery);
+  };
+
+  const handleSubmit = (query, currentThreadId) => {
     setIsLoading(true);
     setError(null);
     setResult(null);
     setPipelineVisible(true);
     setLastQuery(query);
-    setLastThreadId(threadId);
+    setLastThreadId(currentThreadId);
 
-    // Set all agents to pending, then mark first as running
+    // Reset agents to pending, mark first as running
     const freshStatuses = { ...INITIAL_AGENT_STATUS };
     freshStatuses.flight_agent = { status: "running", data: "" };
     setAgentStatuses(freshStatuses);
 
-    // Smooth scroll down to the agent pipeline
+    // Smooth scroll down to agent pipeline
     setTimeout(() => {
       const pipelineEl = document.getElementById("agent-pipeline-view");
       if (pipelineEl) {
@@ -56,22 +67,18 @@ export default function App() {
 
     const agentOrder = ["flight_agent", "hotel_agent", "itinerary_agent", "final_agent"];
 
-    const abort = streamTravelPlan(query, threadId, {
-      onPipelineStart: () => {
-        // Pipeline started
-      },
+    const abort = streamTravelPlan(query, currentThreadId, {
+      onPipelineStart: () => {},
 
       onAgentUpdate: (data) => {
         setAgentStatuses((prev) => {
           const updated = { ...prev };
 
-          // Mark current agent as complete with received data
           updated[data.agent] = {
             status: "complete",
             data: data.data,
           };
 
-          // Mark next agent as running
           const nextIdx = agentOrder.indexOf(data.agent) + 1;
           if (nextIdx < agentOrder.length) {
             updated[agentOrder[nextIdx]] = {
@@ -88,7 +95,6 @@ export default function App() {
         setResult(data);
         setIsLoading(false);
 
-        // Smooth scroll to final travel plan
         setTimeout(() => {
           const planEl = document.getElementById("final-plan-view");
           if (planEl) {
@@ -108,45 +114,58 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-dark-950 text-white relative bg-grid-pattern selection:bg-brand-500 selection:text-white">
-      {/* Ambient background light orbs */}
-      <div className="fixed top-0 left-1/4 w-[500px] h-[500px] bg-brand-600/10 blur-[150px] pointer-events-none rounded-full" />
-      <div className="fixed bottom-10 right-1/4 w-[600px] h-[600px] bg-cyan-600/10 blur-[180px] pointer-events-none rounded-full" />
+    <div className="min-h-screen w-full bg-dark-950 text-white relative selection:bg-brand-500/30 selection:text-white">
+      {/* Cinematic ambient background */}
+      <div className="ambient-bg w-full h-full overflow-hidden" />
+      <div className="dot-mesh w-full h-full overflow-hidden" />
 
-      {/* Navigation */}
-      <Navbar />
+      {/* Top Header */}
+      <Navbar threadId={threadId} onNewThread={handleNewThread} />
 
-      {/* Main Content Area */}
-      <main className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pb-24 pt-28">
+      {/* Main Page Content */}
+      <main className="relative z-10 mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-24">
+        {/* Hero Section */}
         <Hero />
 
-        {/* Input Form Section */}
-        <div className="mt-6">
-          <TripForm onSubmit={handleSubmit} onAbort={handleAbort} isLoading={isLoading} />
+        {/* Search & Configuration Console */}
+        <div className="mt-2 w-full">
+          <TripForm
+            key={activeFormQuery}
+            externalQuery={activeFormQuery}
+            threadId={threadId}
+            onSubmit={handleSubmit}
+            onAbort={handleAbort}
+            isLoading={isLoading}
+          />
         </div>
 
-        {/* Error Notification */}
+        {/* Featured Curated Destinations (Standalone section) */}
+        <DestinationStrip onSelect={handleSelectDestination} />
+
+        {/* Error notification */}
         {error && (
-          <div className="animate-fade-in-up mt-8 rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm text-red-200 backdrop-blur-xl flex items-center justify-between">
+          <div className="animate-fade-in-up mt-8 rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm text-red-200 backdrop-blur-xl flex items-center justify-between shadow-xl">
             <div>
-              <span className="font-bold text-red-400 block mb-0.5">Pipeline Execution Notice:</span>
-              <p className="text-xs text-red-300/90">{error}</p>
+              <span className="font-bold text-red-400 text-xs uppercase tracking-wider block mb-1">
+                Pipeline Notice
+              </span>
+              <p className="text-sm text-red-200/90">{error}</p>
             </div>
             <button
               onClick={() => setError(null)}
-              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-200 transition-colors"
+              className="text-xs font-bold px-3 py-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-200 transition-colors"
             >
               Dismiss
             </button>
           </div>
         )}
 
-        {/* Live Agent Pipeline */}
+        {/* Real-Time Agent Pipeline */}
         <div id="agent-pipeline-view">
           <AgentPipeline agentStatuses={agentStatuses} visible={pipelineVisible} />
         </div>
 
-        {/* Final Travel Plan Display */}
+        {/* Final Travel Itinerary */}
         <div id="final-plan-view">
           <TravelPlan
             result={result}
@@ -157,27 +176,39 @@ export default function App() {
         </div>
       </main>
 
-      {/* Modern Footer */}
-      <footer className="border-t border-white/5 bg-dark-950/80 py-12 text-center relative z-10 backdrop-blur-md">
-        <div className="mx-auto max-w-7xl px-4 flex flex-col items-center gap-4">
+      {/* Footer */}
+      <footer className="border-t border-white/[0.08] bg-dark-950/80 py-12 text-center relative z-10 backdrop-blur-xl">
+        <div className="mx-auto w-full px-4 flex flex-col items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-extrabold text-white">Tri<span className="gradient-text">ply</span></span>
-            <span className="text-xs text-text-muted">• Autonomous Travel Planner</span>
+            <span className="text-lg font-black tracking-tight text-white">
+              Tri<span className="gradient-text">ply</span>
+            </span>
+            <span className="rounded-md bg-brand-500/15 border border-brand-400/30 px-1.5 py-0.5 text-[0.62rem] font-bold text-brand-300 tracking-wide uppercase">
+              AI
+            </span>
           </div>
 
-          <p className="text-xs text-text-muted max-w-md">
-            Architected with React 19, Tailwind CSS v4, Node.js Express, Python FastAPI, LangGraph, Groq LLaMA 3.3, and Supabase PostgreSQL.
+          <p className="text-xs text-text-secondary max-w-md leading-relaxed">
+            Autonomous multi-agent travel planning platform. Powered by LangGraph, live airline APIs, curated hotel discovery, and stateful memory.
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-2 mt-1">
-            <span className="pill-badge bg-white/5 text-text-muted">LangGraph Checkpointer</span>
-            <span className="pill-badge bg-white/5 text-text-muted">Server-Sent Events</span>
-            <span className="pill-badge bg-white/5 text-text-muted">Multi-Agent Cooperation</span>
+          <div className="flex items-center gap-4 text-xs text-text-muted mt-2">
+            <span>© {new Date().getFullYear()} Triply Intelligence.</span>
+            <span>•</span>
+            <a
+              href="https://github.com/amlanjyoti8704/Triply-AI-Trip-Planner"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white transition-colors no-underline"
+            >
+              Source Code
+            </a>
+            <span>•</span>
+            <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+              All Systems Operational
+            </span>
           </div>
-
-          <p className="text-[0.7rem] text-text-muted mt-2">
-            © {new Date().getFullYear()} Triply. MIT Licensed.
-          </p>
         </div>
       </footer>
     </div>

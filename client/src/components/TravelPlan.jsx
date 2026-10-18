@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Download, Copy, Check, Printer, Sparkles, Plane, Hotel, Calendar, Coins, ShieldCheck, Share2 } from "lucide-react";
+import { Download, Copy, Check, Printer, Plane, Hotel, Calendar, Sparkles } from "lucide-react";
 
 export default function TravelPlan({ result, query, threadId, visible }) {
   const [copied, setCopied] = useState(false);
@@ -63,87 +63,85 @@ ${final_response || "N/A"}
     window.print();
   };
 
+  const TABS = [
+    { id: "all", label: "Full Plan" },
+    { id: "itinerary", label: "Day-by-Day" },
+    { id: "flights", label: "Flights" },
+    { id: "hotels", label: "Hotels" },
+  ];
+
   return (
-    <section className="glass-panel p-6 sm:p-8 lg:p-10 mt-10 border border-white/10 relative overflow-hidden animate-fade-in-up">
-      {/* Metrics Banner */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-        <MetricCard label="Autonomous Agents" value="4 Active" icon={<Sparkles className="h-4 w-4 text-brand-400" />} />
-        <MetricCard label="LLM Inference Calls" value={String(llm_calls || 4)} icon={<Coins className="h-4 w-4 text-amber-400" />} />
-        <MetricCard label="Memory Storage" value="Postgres" icon={<ShieldCheck className="h-4 w-4 text-emerald-400" />} />
-        <MetricCard label="Pipeline Status" value="100% Ready" icon={<Check className="h-4 w-4 text-cyan-400" />} />
+    <section className="card-luxury p-6 sm:p-8 lg:p-10 mt-10 relative overflow-hidden animate-fade-in-up">
+      {/* Stats strip */}
+      <div className="flex flex-wrap items-center gap-4 sm:gap-6 mb-6 pb-6 border-b border-white/[0.08]">
+        <StatChip label="Agents Deployed" value="4 Specialized" />
+        <StatChip label="LLM Orchestrations" value={String(llm_calls || 4)} />
+        <StatChip label="State Persistence" value="Supabase PostgreSQL" />
+        <div className="ml-auto text-xs font-medium text-text-muted">
+          Generated {timestamp}
+        </div>
       </div>
 
-      {/* Main Header & Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 mb-6 border-b border-white/10">
+      {/* Title and actions */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider">AI Travel Synthesis</span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">Your Curated Itinerary</h2>
-          <p className="text-xs text-text-muted mt-1">
-            Generated on <span className="text-text-secondary">{timestamp}</span> • Session:{" "}
-            <code className="text-cyan-300 font-mono">{threadId}</code>
+          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Your Curated Travel Blueprint</h2>
+          <p className="text-xs sm:text-sm text-text-secondary mt-1">
+            Persisted session <code className="text-cyan-300 font-mono text-xs px-2 py-0.5 rounded-md bg-dark-950/80 border border-white/10">{threadId}</code>
           </p>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={handleCopy}
-            className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-semibold text-text-primary hover:bg-white/10 transition-colors"
-            title="Copy entire plan to clipboard"
-          >
-            {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-            <span>{copied ? "Copied!" : "Copy"}</span>
-          </button>
-
-          <button
-            onClick={handleDownload}
-            className="flex items-center gap-1.5 rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-3.5 py-2 text-xs font-semibold text-cyan-300 hover:bg-cyan-400/20 transition-colors"
-            title="Download plan as Markdown file"
-          >
-            <Download className="h-3.5 w-3.5" />
-            <span>Download .MD</span>
-          </button>
-
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-semibold text-text-primary hover:bg-white/10 transition-colors"
-            title="Print or Save as PDF"
-          >
-            <Printer className="h-3.5 w-3.5" />
-            <span>Print</span>
-          </button>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <ActionButton onClick={handleCopy} icon={copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}>
+            {copied ? "Copied to Clipboard" : "Copy Itinerary"}
+          </ActionButton>
+          <ActionButton onClick={handleDownload} icon={<Download className="h-4 w-4" />} accent>
+            Download Markdown
+          </ActionButton>
+          <ActionButton onClick={handlePrint} icon={<Printer className="h-4 w-4" />}>
+            Print / PDF
+          </ActionButton>
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex overflow-x-auto gap-2 pb-4 mb-6 border-b border-white/5">
-        <TabButton id="all" label="Full Travel Plan" active={activeTab === "all"} onClick={() => setActiveTab("all")} />
-        <TabButton id="itinerary" label="Day-by-Day" active={activeTab === "itinerary"} onClick={() => setActiveTab("itinerary")} />
-        <TabButton id="flights" label="Flights" active={activeTab === "flights"} onClick={() => setActiveTab("flights")} />
-        <TabButton id="hotels" label="Hotels" active={activeTab === "hotels"} onClick={() => setActiveTab("hotels")} />
+      {/* Tabs */}
+      <div className="flex gap-2 pb-4 mb-6 border-b border-white/[0.08] overflow-x-auto">
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap ${
+              activeTab === tab.id
+                ? "bg-brand-500/20 text-brand-300 border border-brand-400/40 shadow-md shadow-brand-500/10"
+                : "bg-white/[0.03] text-text-secondary hover:text-white hover:bg-white/[0.06] border border-white/[0.06]"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* Tab Content Display */}
-      <div className="space-y-6">
+      {/* Content */}
+      <div>
         {activeTab === "all" && (
-          <div className="rounded-2xl border border-brand-500/20 bg-dark-950/60 p-6 sm:p-8">
+          <div className="rounded-2xl border border-white/[0.06] bg-dark-950/50 p-5 sm:p-7">
             <FormattedPlan text={final_response} />
           </div>
         )}
 
         {activeTab === "itinerary" && (
-          <div className="rounded-2xl border border-amber-500/20 bg-dark-950/60 p-6 sm:p-8">
-            <h3 className="text-lg font-bold text-amber-300 mb-4 flex items-center gap-2">
-              <Calendar className="h-5 w-5" /> Detailed Day-by-Day Schedule
+          <div className="rounded-2xl border border-amber-500/15 bg-dark-950/50 p-5 sm:p-7">
+            <h3 className="text-base font-bold text-amber-300 mb-4 flex items-center gap-2">
+              <Calendar className="h-4 w-4" /> Day-by-Day Schedule
             </h3>
             <FormattedPlan text={itinerary} />
           </div>
         )}
 
         {activeTab === "flights" && (
-          <div className="rounded-2xl border border-sky-500/20 bg-dark-950/60 p-6 sm:p-8">
-            <h3 className="text-lg font-bold text-sky-300 mb-4 flex items-center gap-2">
-              <Plane className="h-5 w-5" /> Live Flight Options
+          <div className="rounded-2xl border border-sky-500/15 bg-dark-950/50 p-5 sm:p-7">
+            <h3 className="text-base font-bold text-sky-300 mb-4 flex items-center gap-2">
+              <Plane className="h-4 w-4" /> Flight Options
             </h3>
             <pre className="text-xs text-text-secondary whitespace-pre-wrap font-sans leading-relaxed">
               {flight_results || "No flight details recorded."}
@@ -152,9 +150,9 @@ ${final_response || "N/A"}
         )}
 
         {activeTab === "hotels" && (
-          <div className="rounded-2xl border border-emerald-500/20 bg-dark-950/60 p-6 sm:p-8">
-            <h3 className="text-lg font-bold text-emerald-300 mb-4 flex items-center gap-2">
-              <Hotel className="h-5 w-5" /> Hotel Recommendations
+          <div className="rounded-2xl border border-emerald-500/15 bg-dark-950/50 p-5 sm:p-7">
+            <h3 className="text-base font-bold text-emerald-300 mb-4 flex items-center gap-2">
+              <Hotel className="h-4 w-4" /> Hotel Recommendations
             </h3>
             <pre className="text-xs text-text-secondary whitespace-pre-wrap font-sans leading-relaxed">
               {hotel_results || "No hotel details recorded."}
@@ -166,29 +164,29 @@ ${final_response || "N/A"}
   );
 }
 
-function MetricCard({ label, value, icon }) {
+/* ── Sub-components ── */
+
+function StatChip({ label, value }) {
   return (
-    <div className="rounded-xl border border-white/5 bg-dark-900/60 p-3.5 flex items-center gap-3">
-      <div className="p-2 rounded-lg bg-white/5 shrink-0">{icon}</div>
-      <div>
-        <span className="block text-[0.65rem] font-semibold text-text-muted uppercase tracking-wider">{label}</span>
-        <span className="block text-sm font-bold text-white mt-0.5">{value}</span>
-      </div>
+    <div className="flex items-center gap-2">
+      <span className="text-[0.6rem] font-medium text-text-muted uppercase tracking-wider">{label}</span>
+      <span className="text-xs font-bold text-white bg-white/[0.04] px-2 py-0.5 rounded-md border border-white/[0.04]">{value}</span>
     </div>
   );
 }
 
-function TabButton({ id, label, active, onClick }) {
+function ActionButton({ onClick, icon, children, accent }) {
   return (
     <button
       onClick={onClick}
-      className={`rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap border ${
-        active
-          ? "border-cyan-400/40 bg-cyan-400/15 text-cyan-300 shadow-md shadow-cyan-500/10"
-          : "border-transparent bg-transparent text-text-muted hover:text-white hover:bg-white/5"
+      className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[0.7rem] font-semibold transition-all ${
+        accent
+          ? "border border-brand-400/25 bg-brand-500/10 text-brand-300 hover:bg-brand-500/15"
+          : "border border-white/[0.06] bg-white/[0.03] text-text-secondary hover:bg-white/[0.06] hover:text-white"
       }`}
     >
-      {label}
+      {icon}
+      <span>{children}</span>
     </button>
   );
 }
@@ -197,59 +195,58 @@ function FormattedPlan({ text }) {
   if (!text) return <p className="text-sm text-text-muted">No content available.</p>;
 
   return (
-    <div className="prose-invert max-w-none text-sm sm:text-base leading-[1.85] text-text-secondary space-y-3">
+    <div className="max-w-none text-sm leading-[1.8] text-text-secondary space-y-2">
       {text.split("\n").map((line, i) => {
         const trimmed = line.trim();
-        if (!trimmed) return <div key={i} className="h-2" />;
+        if (!trimmed) return <div key={i} className="h-1.5" />;
 
-        // Top level headers
         if (trimmed.startsWith("# ")) {
           return (
-            <h1 key={i} className="text-2xl font-black text-white pt-4 pb-1 border-b border-white/10">
+            <h1 key={i} className="text-xl font-extrabold text-white pt-4 pb-1 border-b border-white/[0.06]">
               {trimmed.replace("# ", "")}
             </h1>
           );
         }
         if (trimmed.startsWith("## ")) {
           return (
-            <h2 key={i} className="text-lg sm:text-xl font-bold text-cyan-300 pt-5 pb-1 flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-cyan-400" />
+            <h2 key={i} className="text-lg font-bold text-white pt-4 pb-1 flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-brand-400" />
               {trimmed.replace("## ", "")}
             </h2>
           );
         }
         if (trimmed.startsWith("### ")) {
           return (
-            <h3 key={i} className="text-base font-bold text-white pt-3">
+            <h3 key={i} className="text-base font-bold text-white/90 pt-3">
               {trimmed.replace("### ", "")}
             </h3>
           );
         }
 
-        // Days highlights (e.g., "Day 1:", "**Day 2:**")
+        // Day highlights
         if (/^(\*\*Day\s*\d+|Day\s*\d+)/i.test(trimmed)) {
           return (
-            <div key={i} className="mt-4 p-3 rounded-xl bg-white/[0.03] border-l-4 border-l-cyan-400 text-white font-semibold">
+            <div key={i} className="mt-3 p-3 rounded-xl bg-white/[0.02] border-l-3 border-l-brand-400 text-white font-semibold text-sm">
               {trimmed.replace(/\*\*/g, "")}
             </div>
           );
         }
 
-        // Bullet points
+        // Bullets
         if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
           return (
-            <div key={i} className="flex items-start gap-2.5 ml-3">
-              <span className="text-cyan-400 mt-1.5">•</span>
+            <div key={i} className="flex items-start gap-2 ml-2">
+              <span className="text-brand-400/60 mt-1.5 text-xs">•</span>
               <span className="text-text-secondary">{trimmed.replace(/^[-*]\s+/, "")}</span>
             </div>
           );
         }
 
-        // Numbered list
+        // Numbered
         if (/^\d+\.\s/.test(trimmed)) {
           return (
-            <div key={i} className="flex items-start gap-2 ml-3">
-              <span className="text-cyan-400 font-bold">{trimmed.match(/^\d+\./)[0]}</span>
+            <div key={i} className="flex items-start gap-2 ml-2">
+              <span className="text-brand-400/80 font-bold text-xs mt-0.5">{trimmed.match(/^\d+\./)[0]}</span>
               <span className="text-text-secondary">{trimmed.replace(/^\d+\.\s+/, "")}</span>
             </div>
           );

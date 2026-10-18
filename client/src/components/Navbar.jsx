@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Plane, Sparkles, Layers, Activity, Menu, X, ExternalLink } from "lucide-react";
+import { useState } from "react";
+import { Plane, Sparkles, Menu, X, ExternalLink, RefreshCw } from "lucide-react";
 
 function GithubIcon({ className = "h-4 w-4" }) {
   return (
@@ -9,110 +9,114 @@ function GithubIcon({ className = "h-4 w-4" }) {
   );
 }
 
-
-export default function Navbar() {
+export default function Navbar({ threadId, onNewThread }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "border-b border-white/10 bg-dark-950/85 backdrop-blur-2xl shadow-2xl shadow-black/60 py-3.5"
-          : "border-b border-white/5 bg-transparent backdrop-blur-md py-4"
-      }`}
-    >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 w-full bg-dark-950/80 backdrop-blur-xl border-b border-white/[0.08] shadow-lg shadow-black/40">
+      <div style={{padding:'25px'}} className="mx-auto w-full flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16 sm:h-18">
         {/* Brand */}
-        <a href="/" className="group flex items-center gap-3 no-underline">
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-brand-600 via-brand-500 to-cyan-400 text-white shadow-lg shadow-brand-500/30 transition-transform duration-300 group-hover:scale-105">
-            <Plane className="h-5 w-5 -rotate-45 transition-transform duration-300 group-hover:rotate-0" />
-            <div className="absolute inset-0 rounded-2xl bg-white/20 opacity-0 transition-opacity group-hover:opacity-100" />
+        <a href="/" className="group flex items-center gap-2.5 no-underline">
+          <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-cyan-400 text-white shadow-md shadow-brand-500/30 transition-transform duration-300 group-hover:scale-105">
+            <Plane className="h-4 w-4 -rotate-45 transition-transform duration-500 group-hover:rotate-0" />
+            <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/30" />
           </div>
-          <div className="flex flex-col">
-            <span className="text-xl font-extrabold tracking-tight text-white flex items-center gap-1">
-              Tri<span className="gradient-text">ply</span>
-              <span className="rounded-md bg-brand-500/20 px-1.5 py-0.5 text-[0.65rem] font-bold text-cyan-400 uppercase tracking-widest border border-brand-500/30">
+          <div className="flex flex-col leading-tight">
+            <div className="flex items-center gap-1.5">
+              <span className="text-lg font-black tracking-tight text-white">
+                Tri<span className="gradient-text">ply</span>
+              </span>
+              <span className="rounded-md bg-brand-500/15 border border-brand-400/30 px-1.5 py-0.2 text-[0.6rem] font-bold text-brand-300 tracking-wide uppercase">
                 AI
               </span>
-            </span>
-            <span className="text-[0.68rem] font-medium text-text-muted tracking-wide -mt-0.5">
-              Autonomous Travel Engine
+            </div>
+            <span className="text-[0.62rem] font-medium text-text-muted tracking-wide -mt-0.5">
+              Multi-Agent Travel Concierge
             </span>
           </div>
         </a>
 
-        {/* Center info pill */}
-        <div className="hidden lg:flex items-center gap-2 rounded-full border border-white/10 bg-dark-900/60 px-4 py-1.5 backdrop-blur-md">
+        {/* Center — Status badge */}
+        <div className="hidden md:flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-2 backdrop-blur-lg">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
           </span>
-          <span className="text-xs font-semibold text-text-secondary">Multi-Agent Pipeline</span>
-          <span className="text-text-muted">•</span>
-          <span className="text-xs font-medium text-cyan-400">LangGraph + Supabase</span>
+          <span className="text-[0.72rem] font-semibold text-text-secondary">
+            4 Autonomous Agents Active
+          </span>
         </div>
 
         {/* Right Actions */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden sm:flex items-center gap-3">
+          {/* Session Indicator Pill */}
+          {threadId && (
+            <div className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-dark-900/60 px-2.5 py-1">
+              <span className="text-[0.62rem] font-bold text-text-muted uppercase tracking-wider">Session:</span>
+              <span className="text-xs font-mono font-semibold text-cyan-300">{threadId}</span>
+              {onNewThread && (
+                <button
+                  type="button"
+                  onClick={onNewThread}
+                  className="flex h-4 w-4 items-center justify-center rounded text-text-muted hover:text-white transition-colors ml-0.5"
+                  title="Generate new session thread"
+                >
+                  <RefreshCw className="h-2.5 w-2.5" />
+                </button>
+              )}
+            </div>
+          )}
+
           <a
             href="https://github.com/amlanjyoti8704/Triply-AI-Trip-Planner"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-semibold text-text-primary transition-all duration-200 hover:border-white/25 hover:bg-white/10 hover:shadow-lg no-underline"
+            className="flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-xs font-semibold text-text-secondary transition-all duration-200 hover:border-white/20 hover:bg-white/[0.08] hover:text-white no-underline"
           >
-            <GithubIcon className="h-4 w-4" />
+            <GithubIcon className="h-3.5 w-3.5" />
             <span>GitHub</span>
-            <ExternalLink className="h-3 w-3 text-text-muted" />
+            <ExternalLink className="h-3 w-3 opacity-50" />
           </a>
 
           <a
             href="#trip-builder"
-            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-brand-600 to-cyan-500 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-brand-500/25 transition-all duration-200 hover:opacity-95 hover:shadow-brand-500/40 no-underline"
+            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-md shadow-brand-600/30 transition-all duration-200 hover:shadow-brand-500/40 hover:brightness-110 no-underline"
           >
             <Sparkles className="h-3.5 w-3.5" />
-            <span>Plan Trip</span>
+            <span>Plan Itinerary</span>
           </a>
         </div>
 
         {/* Mobile menu button */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-text-secondary transition-colors hover:text-white md:hidden"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.03] text-text-secondary transition-colors hover:text-white sm:hidden"
           aria-label="Toggle navigation"
         >
-          {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          {menuOpen ? <X className="h-4.5 w-4.5" /> : <Menu className="h-4.5 w-4.5" />}
         </button>
       </div>
 
       {/* Mobile dropdown */}
       {menuOpen && (
-        <div className="border-b border-white/10 bg-dark-950/95 px-6 py-5 backdrop-blur-2xl md:hidden animate-fade-in-up">
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2 rounded-lg bg-dark-900 p-3 text-xs text-text-secondary border border-white/5">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        <div className="border-t border-white/[0.08] bg-dark-950/95 px-5 py-4 backdrop-blur-2xl sm:hidden animate-fade-in-up">
+          <div className="flex flex-col gap-2.5">
+            <div className="flex items-center justify-between rounded-xl bg-dark-900/80 p-3 text-xs text-text-secondary border border-white/[0.06]">
+              <span className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
+                <span>4 Agents Ready</span>
               </span>
-              <span>Agents Ready (Groq LLaMA 3.3 + LangGraph)</span>
+              {threadId && <span className="font-mono text-cyan-300 text-[0.68rem]">{threadId}</span>}
             </div>
 
             <a
               href="https://github.com/amlanjyoti8704/Triply-AI-Trip-Planner"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-text-primary no-underline"
+              className="flex items-center justify-between rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-xs font-semibold text-text-primary no-underline"
             >
               <span className="flex items-center gap-2">
-                <GithubIcon className="h-4 w-4" /> View Source Code
+                <GithubIcon className="h-4 w-4" /> View on GitHub
               </span>
               <ExternalLink className="h-3.5 w-3.5 text-text-muted" />
             </a>
@@ -120,14 +124,14 @@ export default function Navbar() {
             <a
               href="#trip-builder"
               onClick={() => setMenuOpen(false)}
-              className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 to-cyan-500 px-4 py-3 text-sm font-bold text-white shadow-lg no-underline"
+              className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-md no-underline"
             >
-              <Sparkles className="h-4 w-4" />
+              <Sparkles className="h-3.5 w-3.5" />
               <span>Start Planning</span>
             </a>
           </div>
         </div>
       )}
-    </nav>
+    </header>
   );
 }
