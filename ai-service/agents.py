@@ -32,7 +32,13 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 # ── LLM ──────────────────────────────────────────────────────────────────────
-llm = ChatGroq(model="llama-3.3-70b-versatile")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+_primary_llm = ChatGroq(model=GROQ_MODEL, temperature=0.7)
+_fallbacks = [
+    ChatGroq(model="openai/gpt-oss-20b", temperature=0.7),
+    ChatGroq(model="qwen/qwen3.8-27b", temperature=0.7),
+]
+llm = _primary_llm.with_fallbacks(_fallbacks)
 
 
 # ── State ────────────────────────────────────────────────────────────────────

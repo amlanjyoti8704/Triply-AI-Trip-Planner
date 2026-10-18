@@ -22,14 +22,23 @@ def get_client():
 
 
 
-def tavily_search(query: str) -> str:
-    """Search the web using Tavily and return formatted results."""
+def tavily_search(query: str, max_retries: int = 3) -> str:
+    """Search the web using Tavily and return formatted results with automatic retry."""
+    import time
+    response = None
+    last_err = None
 
-    try:
-        response = get_client().search(query=query, max_results=5)
-    except Exception as e:
+    for attempt in range(max_retries):
+        try:
+            response = get_client().search(query=query, max_results=5)
+            if response and "results" in response:
+                break
+        except Exception as e:
+            last_err = e
+            time.sleep(1)
 
-        return f"Error searching: {str(e)}"
+    if not response or "results" not in response:
+        return f"Error searching: {str(last_err)}"
 
     results = []
 

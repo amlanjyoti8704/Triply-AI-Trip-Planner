@@ -29,7 +29,7 @@ const AGENT_CONFIG = {
   itinerary_agent: {
     icon: Calendar,
     label: "Itinerary Agent",
-    tool: "Groq LLaMA 3.3 70B",
+    tool: "Groq LLM Engine",
     description: "Designing a synchronized day-by-day plan with attractions, timings and food stops",
     color: "amber",
     borderClass: "border-amber-500/30",
