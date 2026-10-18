@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+langgraph_env*/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+client/dist/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Travel plans output
+travel_plans/
+
+# Misc
+*.bak
+*.tmp
