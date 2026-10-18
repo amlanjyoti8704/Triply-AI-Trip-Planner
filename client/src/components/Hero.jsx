@@ -44,8 +44,12 @@ export default function Hero() {
     <section className="relative w-full max-w-full pt-6 sm:pt-8 pb-8 text-center">
       <div className="relative mx-auto w-full max-w-full px-2">
         {/* Eyebrow badge */}
-        <div className="animate-fade-in-up inline-flex items-center gap-2 rounded-full border border-brand-400/30 bg-brand-500/10 px-3.5 py-1 backdrop-blur-md mb-5 shadow-sm">
-          <Sparkles className="h-3.5 w-3.5 text-brand-400" />
+        <div className="animate-fade-in-up inline-flex items-center gap-2 bg-brand-500/10 px-3.5 py-1 backdrop-blur-xl mb-5 shadow-md rounded-md">
+          {/* <Sparkles className="h-3.5 w-3.5 text-brand-400" /> */}
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+          </span>
           <span className="text-[0.68rem] font-bold uppercase tracking-wider text-brand-300">
             Autonomous Multi-Agent Travel Orchestration
           </span>

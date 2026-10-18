@@ -14,7 +14,7 @@ export default function Navbar({ threadId, onNewThread }) {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-dark-950/80 backdrop-blur-xl border-b border-white/[0.08] shadow-lg shadow-black/40">
-      <div style={{padding:'25px'}} className="mx-auto w-full flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16 sm:h-18">
+      <div className="mx-auto flex max-w-full items-center justify-between px-4 sm:px-6 lg:px-8 h-16 sm:h-18">
         {/* Brand */}
         <a href="/" className="group flex items-center gap-2.5 no-underline">
           <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-cyan-400 text-white shadow-md shadow-brand-500/30 transition-transform duration-300 group-hover:scale-105">
@@ -26,9 +26,9 @@ export default function Navbar({ threadId, onNewThread }) {
               <span className="text-lg font-black tracking-tight text-white">
                 Tri<span className="gradient-text">ply</span>
               </span>
-              <span className="rounded-md bg-brand-500/15 border border-brand-400/30 px-1.5 py-0.2 text-[0.6rem] font-bold text-brand-300 tracking-wide uppercase">
+              {/* <span className="rounded-md bg-brand-500/15 border border-brand-400/30 px-1.5 py-0.2 text-[0.6rem] font-bold text-brand-300 tracking-wide uppercase">
                 AI
-              </span>
+              </span> */}
             </div>
             <span className="text-[0.62rem] font-medium text-text-muted tracking-wide -mt-0.5">
               Multi-Agent Travel Concierge
@@ -37,7 +37,7 @@ export default function Navbar({ threadId, onNewThread }) {
         </a>
 
         {/* Center — Status badge */}
-        <div className="hidden md:flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-2 backdrop-blur-lg">
+        {/* <div className="hidden md:flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1 backdrop-blur-lg">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
@@ -45,7 +45,7 @@ export default function Navbar({ threadId, onNewThread }) {
           <span className="text-[0.72rem] font-semibold text-text-secondary">
             4 Autonomous Agents Active
           </span>
-        </div>
+        </div> */}
 
         {/* Right Actions */}
         <div className="hidden sm:flex items-center gap-3">

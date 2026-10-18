@@ -22,7 +22,7 @@ export default function App() {
   const [error, setError] = useState(null);
   const [lastQuery, setLastQuery] = useState("");
   const [lastThreadId, setLastThreadId] = useState("");
-  const [threadId, setThreadId] = useState("aarohi_user");
+  const [threadId, setThreadId] = useState("user_2004");
   const [activeFormQuery, setActiveFormQuery] = useState("");
 
   const abortRef = useRef(null);
