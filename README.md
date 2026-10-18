@@ -224,8 +224,3 @@ Plan a complete 7-day Japan trip including flights, hotels and sightseeing under
 | APIs | AviationStack, Tavily |
 | Streaming | Server-Sent Events (SSE) |
 
----
-
-## License
-
-MIT
