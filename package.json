@@ -1,0 +1,11 @@
+{
+  "name": "triply-ai-trip-planner",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Full-stack AI travel planning system using React, Express, FastAPI, and LangGraph",
+  "scripts": {
+    "server": "npm --prefix server run dev",
+    "client": "npm --prefix client run dev",
+    "install:all": "npm --prefix server install && npm --prefix client install"
+  }
+}
