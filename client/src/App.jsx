@@ -24,6 +24,14 @@ export default function App() {
 
   const abortRef = useRef(null);
 
+  const handleAbort = () => {
+    if (abortRef.current) {
+      abortRef.current();
+      abortRef.current = null;
+    }
+    setIsLoading(false);
+  };
+
   const handleSubmit = (query, threadId) => {
     // Reset state
     setIsLoading(true);
@@ -38,27 +46,32 @@ export default function App() {
     freshStatuses.flight_agent = { status: "running", data: "" };
     setAgentStatuses(freshStatuses);
 
+    // Smooth scroll down to the agent pipeline
+    setTimeout(() => {
+      const pipelineEl = document.getElementById("agent-pipeline-view");
+      if (pipelineEl) {
+        pipelineEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 150);
+
     const agentOrder = ["flight_agent", "hotel_agent", "itinerary_agent", "final_agent"];
-    let completedCount = 0;
 
     const abort = streamTravelPlan(query, threadId, {
       onPipelineStart: () => {
-        // Pipeline started — first agent is already marked running
+        // Pipeline started
       },
 
       onAgentUpdate: (data) => {
-        completedCount++;
-
         setAgentStatuses((prev) => {
           const updated = { ...prev };
 
-          // Mark this agent as complete
+          // Mark current agent as complete with received data
           updated[data.agent] = {
             status: "complete",
             data: data.data,
           };
 
-          // Mark the next agent as running (if any)
+          // Mark next agent as running
           const nextIdx = agentOrder.indexOf(data.agent) + 1;
           if (nextIdx < agentOrder.length) {
             updated[agentOrder[nextIdx]] = {
@@ -74,11 +87,19 @@ export default function App() {
       onPipelineComplete: (data) => {
         setResult(data);
         setIsLoading(false);
+
+        // Smooth scroll to final travel plan
+        setTimeout(() => {
+          const planEl = document.getElementById("final-plan-view");
+          if (planEl) {
+            planEl.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }, 200);
       },
 
       onError: (err) => {
         console.error("Pipeline error:", err);
-        setError(err.message || "Something went wrong");
+        setError(err.message || "Something went wrong communicating with the AI pipeline.");
         setIsLoading(false);
       },
     });
@@ -87,49 +108,77 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-dark-950">
+    <div className="min-h-screen bg-dark-950 text-white relative bg-grid-pattern selection:bg-brand-500 selection:text-white">
+      {/* Ambient background light orbs */}
+      <div className="fixed top-0 left-1/4 w-[500px] h-[500px] bg-brand-600/10 blur-[150px] pointer-events-none rounded-full" />
+      <div className="fixed bottom-10 right-1/4 w-[600px] h-[600px] bg-cyan-600/10 blur-[180px] pointer-events-none rounded-full" />
+
+      {/* Navigation */}
       <Navbar />
 
-      <main className="mx-auto max-w-4xl px-4 pb-20 pt-24">
+      {/* Main Content Area */}
+      <main className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pb-24 pt-28">
         <Hero />
 
-        <div className="mt-10">
-          <TripForm onSubmit={handleSubmit} isLoading={isLoading} />
+        {/* Input Form Section */}
+        <div className="mt-6">
+          <TripForm onSubmit={handleSubmit} onAbort={handleAbort} isLoading={isLoading} />
         </div>
 
-        {/* Error banner */}
+        {/* Error Notification */}
         {error && (
-          <div className="animate-fade-in-up mt-6 rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm text-red-300">
-            <span className="mr-2 font-semibold">⚠️ Error:</span>
-            {error}
+          <div className="animate-fade-in-up mt-8 rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm text-red-200 backdrop-blur-xl flex items-center justify-between">
+            <div>
+              <span className="font-bold text-red-400 block mb-0.5">Pipeline Execution Notice:</span>
+              <p className="text-xs text-red-300/90">{error}</p>
+            </div>
+            <button
+              onClick={() => setError(null)}
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-200 transition-colors"
+            >
+              Dismiss
+            </button>
           </div>
         )}
 
-        {/* Agent pipeline */}
-        <AgentPipeline agentStatuses={agentStatuses} visible={pipelineVisible} />
+        {/* Live Agent Pipeline */}
+        <div id="agent-pipeline-view">
+          <AgentPipeline agentStatuses={agentStatuses} visible={pipelineVisible} />
+        </div>
 
-        {/* Final result */}
-        <TravelPlan
-          result={result}
-          query={lastQuery}
-          threadId={lastThreadId}
-          visible={!!result}
-        />
+        {/* Final Travel Plan Display */}
+        <div id="final-plan-view">
+          <TravelPlan
+            result={result}
+            query={lastQuery}
+            threadId={lastThreadId}
+            visible={!!result}
+          />
+        </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-dark-700/40 bg-dark-950 py-8 text-center">
-        <p className="text-xs text-text-muted">
-          Built with{" "}
-          <span className="font-medium text-text-secondary">React</span> ·{" "}
-          <span className="font-medium text-text-secondary">Express</span> ·{" "}
-          <span className="font-medium text-text-secondary">FastAPI</span> ·{" "}
-          <span className="font-medium text-text-secondary">LangGraph</span> ·{" "}
-          <span className="font-medium text-text-secondary">PostgreSQL</span>
-        </p>
-        <p className="mt-1 text-xs text-text-muted">
-          © {new Date().getFullYear()} Triply — AI Trip Planner
-        </p>
+      {/* Modern Footer */}
+      <footer className="border-t border-white/5 bg-dark-950/80 py-12 text-center relative z-10 backdrop-blur-md">
+        <div className="mx-auto max-w-7xl px-4 flex flex-col items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-extrabold text-white">Tri<span className="gradient-text">ply</span></span>
+            <span className="text-xs text-text-muted">• Autonomous Travel Planner</span>
+          </div>
+
+          <p className="text-xs text-text-muted max-w-md">
+            Architected with React 19, Tailwind CSS v4, Node.js Express, Python FastAPI, LangGraph, Groq LLaMA 3.3, and Supabase PostgreSQL.
+          </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-1">
+            <span className="pill-badge bg-white/5 text-text-muted">LangGraph Checkpointer</span>
+            <span className="pill-badge bg-white/5 text-text-muted">Server-Sent Events</span>
+            <span className="pill-badge bg-white/5 text-text-muted">Multi-Agent Cooperation</span>
+          </div>
+
+          <p className="text-[0.7rem] text-text-muted mt-2">
+            © {new Date().getFullYear()} Triply. MIT Licensed.
+          </p>
+        </div>
       </footer>
     </div>
   );

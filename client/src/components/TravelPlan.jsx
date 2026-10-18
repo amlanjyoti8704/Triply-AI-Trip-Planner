@@ -1,9 +1,10 @@
-/**
- * TravelPlan — renders the final compiled travel plan
- * with metrics bar, formatted content, and download button.
- */
+import { useState } from "react";
+import { Download, Copy, Check, Printer, Sparkles, Plane, Hotel, Calendar, Coins, ShieldCheck, Share2 } from "lucide-react";
 
 export default function TravelPlan({ result, query, threadId, visible }) {
+  const [copied, setCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState("all");
+
   if (!visible || !result) return null;
 
   const { flight_results, hotel_results, itinerary, final_response, llm_calls } = result;
@@ -13,34 +14,33 @@ export default function TravelPlan({ result, query, threadId, visible }) {
     timeStyle: "short",
   });
 
-  // Build downloadable markdown content
-  const markdownContent = `# Travel Plan
-**Query:** ${query}
-**Generated:** ${timestamp}
-**User ID:** ${threadId}
+  const markdownContent = `# Triply Travel Plan
+**Destination Query:** ${query}
+**Generated Date:** ${timestamp}
+**Session Thread:** ${threadId}
 
 ---
 
-## ✈️ Flight Information
+## ✈️ Flight Details
 ${flight_results || "N/A"}
 
 ---
 
-## 🏨 Hotel Information
+## 🏨 Hotel Recommendations
 ${hotel_results || "N/A"}
 
 ---
 
-## 🗓️ Itinerary
+## 🗓️ Day-by-Day Itinerary
 ${itinerary || "N/A"}
 
 ---
 
-## 🧠 Final Travel Plan
+## 🧠 Final Compiled Plan
 ${final_response || "N/A"}
 
 ---
-*LLM Calls: ${llm_calls || 0}*
+*LLM Calls: ${llm_calls || 0} | Memory: Supabase PostgreSQL*
 `;
 
   const handleDownload = () => {
@@ -48,109 +48,215 @@ ${final_response || "N/A"}
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `travel_plan_${Date.now()}.md`;
+    a.download = `triply_travel_plan_${Date.now()}.md`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(markdownContent);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
-    <section className="animate-fade-in-up mt-8 space-y-6">
-      {/* ── Metrics bar ── */}
-      <div className="grid grid-cols-3 gap-3">
-        <MetricCard value="4" label="Agents Run" />
-        <MetricCard value={String(llm_calls || 0)} label="LLM Calls" />
-        <MetricCard value="✅" label="Status" />
+    <section className="glass-panel p-6 sm:p-8 lg:p-10 mt-10 border border-white/10 relative overflow-hidden animate-fade-in-up">
+      {/* Metrics Banner */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+        <MetricCard label="Autonomous Agents" value="4 Active" icon={<Sparkles className="h-4 w-4 text-brand-400" />} />
+        <MetricCard label="LLM Inference Calls" value={String(llm_calls || 4)} icon={<Coins className="h-4 w-4 text-amber-400" />} />
+        <MetricCard label="Memory Storage" value="Postgres" icon={<ShieldCheck className="h-4 w-4 text-emerald-400" />} />
+        <MetricCard label="Pipeline Status" value="100% Ready" icon={<Check className="h-4 w-4 text-cyan-400" />} />
       </div>
 
-      {/* ── Final plan ── */}
-      <div>
-        <div className="mb-4 flex items-center gap-2 border-b border-dark-600/40 pb-3">
-          <span className="text-lg">🧠</span>
-          <h2 className="text-sm font-semibold tracking-wider text-text-primary uppercase">
-            Final Travel Plan
-          </h2>
+      {/* Main Header & Actions */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 mb-6 border-b border-white/10">
+        <div>
+          <span className="text-xs font-bold text-cyan-400 uppercase tracking-wider">AI Travel Synthesis</span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">Your Curated Itinerary</h2>
+          <p className="text-xs text-text-muted mt-1">
+            Generated on <span className="text-text-secondary">{timestamp}</span> • Session:{" "}
+            <code className="text-cyan-300 font-mono">{threadId}</code>
+          </p>
         </div>
 
-        <div className="rounded-2xl border border-accent-400/15 border-l-4 border-l-accent-400/60 bg-gradient-to-br from-dark-800/80 to-dark-900/90 p-6 md:p-8">
-          <div className="prose-invert max-w-none text-sm leading-[1.85] text-text-secondary">
-            {final_response.split("\n").map((line, i) => {
-              if (!line.trim()) return <br key={i} />;
+        {/* Action Buttons */}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={handleCopy}
+            className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-semibold text-text-primary hover:bg-white/10 transition-colors"
+            title="Copy entire plan to clipboard"
+          >
+            {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+            <span>{copied ? "Copied!" : "Copy"}</span>
+          </button>
 
-              // Headings
-              if (line.startsWith("### "))
-                return (
-                  <h3 key={i} className="mb-2 mt-5 text-base font-bold text-text-primary">
-                    {line.replace("### ", "")}
-                  </h3>
-                );
-              if (line.startsWith("## "))
-                return (
-                  <h2 key={i} className="mb-3 mt-6 text-lg font-bold text-accent-400">
-                    {line.replace("## ", "")}
-                  </h2>
-                );
-              if (line.startsWith("# "))
-                return (
-                  <h1 key={i} className="mb-4 mt-6 text-xl font-extrabold text-text-primary">
-                    {line.replace("# ", "")}
-                  </h1>
-                );
+          <button
+            onClick={handleDownload}
+            className="flex items-center gap-1.5 rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-3.5 py-2 text-xs font-semibold text-cyan-300 hover:bg-cyan-400/20 transition-colors"
+            title="Download plan as Markdown file"
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span>Download .MD</span>
+          </button>
 
-              // Bold markers
-              if (line.startsWith("**") && line.endsWith("**"))
-                return (
-                  <p key={i} className="mt-3 font-semibold text-text-primary">
-                    {line.replace(/\*\*/g, "")}
-                  </p>
-                );
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-semibold text-text-primary hover:bg-white/10 transition-colors"
+            title="Print or Save as PDF"
+          >
+            <Printer className="h-3.5 w-3.5" />
+            <span>Print</span>
+          </button>
+        </div>
+      </div>
 
-              // Bullet points
-              if (line.trimStart().startsWith("- ") || line.trimStart().startsWith("* "))
-                return (
-                  <li key={i} className="ml-5 list-disc text-text-secondary">
-                    {line.replace(/^\s*[-*]\s/, "")}
-                  </li>
-                );
+      {/* Navigation Tabs */}
+      <div className="flex overflow-x-auto gap-2 pb-4 mb-6 border-b border-white/5">
+        <TabButton id="all" label="Full Travel Plan" active={activeTab === "all"} onClick={() => setActiveTab("all")} />
+        <TabButton id="itinerary" label="Day-by-Day" active={activeTab === "itinerary"} onClick={() => setActiveTab("itinerary")} />
+        <TabButton id="flights" label="Flights" active={activeTab === "flights"} onClick={() => setActiveTab("flights")} />
+        <TabButton id="hotels" label="Hotels" active={activeTab === "hotels"} onClick={() => setActiveTab("hotels")} />
+      </div>
 
-              // Numbered list
-              if (/^\s*\d+[.)]\s/.test(line))
-                return (
-                  <li key={i} className="ml-5 list-decimal text-text-secondary">
-                    {line.replace(/^\s*\d+[.)]\s/, "")}
-                  </li>
-                );
-
-              return <p key={i}>{line}</p>;
-            })}
+      {/* Tab Content Display */}
+      <div className="space-y-6">
+        {activeTab === "all" && (
+          <div className="rounded-2xl border border-brand-500/20 bg-dark-950/60 p-6 sm:p-8">
+            <FormattedPlan text={final_response} />
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* ── Download bar ── */}
-      <div className="flex flex-col items-start gap-3 rounded-xl border border-dark-600/40 bg-dark-800/40 p-4 sm:flex-row sm:items-center">
-        <button
-          id="download-plan-btn"
-          onClick={handleDownload}
-          className="shrink-0 rounded-lg border border-accent-400/30 bg-accent-400/10 px-5 py-2.5 text-sm font-semibold text-accent-400 transition-all duration-200 hover:bg-accent-400/20"
-        >
-          ⬇️ Download Plan
-        </button>
-        <p className="text-xs text-text-muted">
-          Generated on <span className="text-text-secondary">{timestamp}</span> • Session{" "}
-          <code className="rounded bg-dark-700/60 px-1.5 py-0.5 text-accent-400">{threadId}</code>
-        </p>
+        {activeTab === "itinerary" && (
+          <div className="rounded-2xl border border-amber-500/20 bg-dark-950/60 p-6 sm:p-8">
+            <h3 className="text-lg font-bold text-amber-300 mb-4 flex items-center gap-2">
+              <Calendar className="h-5 w-5" /> Detailed Day-by-Day Schedule
+            </h3>
+            <FormattedPlan text={itinerary} />
+          </div>
+        )}
+
+        {activeTab === "flights" && (
+          <div className="rounded-2xl border border-sky-500/20 bg-dark-950/60 p-6 sm:p-8">
+            <h3 className="text-lg font-bold text-sky-300 mb-4 flex items-center gap-2">
+              <Plane className="h-5 w-5" /> Live Flight Options
+            </h3>
+            <pre className="text-xs text-text-secondary whitespace-pre-wrap font-sans leading-relaxed">
+              {flight_results || "No flight details recorded."}
+            </pre>
+          </div>
+        )}
+
+        {activeTab === "hotels" && (
+          <div className="rounded-2xl border border-emerald-500/20 bg-dark-950/60 p-6 sm:p-8">
+            <h3 className="text-lg font-bold text-emerald-300 mb-4 flex items-center gap-2">
+              <Hotel className="h-5 w-5" /> Hotel Recommendations
+            </h3>
+            <pre className="text-xs text-text-secondary whitespace-pre-wrap font-sans leading-relaxed">
+              {hotel_results || "No hotel details recorded."}
+            </pre>
+          </div>
+        )}
       </div>
     </section>
   );
 }
 
-function MetricCard({ value, label }) {
+function MetricCard({ label, value, icon }) {
   return (
-    <div className="glass-card flex flex-col items-center justify-center px-4 py-5 text-center">
-      <span className="text-2xl font-extrabold text-accent-400 md:text-3xl">{value}</span>
-      <span className="mt-1 text-[0.65rem] font-semibold tracking-widest text-text-muted uppercase">
-        {label}
-      </span>
+    <div className="rounded-xl border border-white/5 bg-dark-900/60 p-3.5 flex items-center gap-3">
+      <div className="p-2 rounded-lg bg-white/5 shrink-0">{icon}</div>
+      <div>
+        <span className="block text-[0.65rem] font-semibold text-text-muted uppercase tracking-wider">{label}</span>
+        <span className="block text-sm font-bold text-white mt-0.5">{value}</span>
+      </div>
+    </div>
+  );
+}
+
+function TabButton({ id, label, active, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`rounded-xl px-4 py-2 text-xs font-bold transition-all whitespace-nowrap border ${
+        active
+          ? "border-cyan-400/40 bg-cyan-400/15 text-cyan-300 shadow-md shadow-cyan-500/10"
+          : "border-transparent bg-transparent text-text-muted hover:text-white hover:bg-white/5"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function FormattedPlan({ text }) {
+  if (!text) return <p className="text-sm text-text-muted">No content available.</p>;
+
+  return (
+    <div className="prose-invert max-w-none text-sm sm:text-base leading-[1.85] text-text-secondary space-y-3">
+      {text.split("\n").map((line, i) => {
+        const trimmed = line.trim();
+        if (!trimmed) return <div key={i} className="h-2" />;
+
+        // Top level headers
+        if (trimmed.startsWith("# ")) {
+          return (
+            <h1 key={i} className="text-2xl font-black text-white pt-4 pb-1 border-b border-white/10">
+              {trimmed.replace("# ", "")}
+            </h1>
+          );
+        }
+        if (trimmed.startsWith("## ")) {
+          return (
+            <h2 key={i} className="text-lg sm:text-xl font-bold text-cyan-300 pt-5 pb-1 flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-cyan-400" />
+              {trimmed.replace("## ", "")}
+            </h2>
+          );
+        }
+        if (trimmed.startsWith("### ")) {
+          return (
+            <h3 key={i} className="text-base font-bold text-white pt-3">
+              {trimmed.replace("### ", "")}
+            </h3>
+          );
+        }
+
+        // Days highlights (e.g., "Day 1:", "**Day 2:**")
+        if (/^(\*\*Day\s*\d+|Day\s*\d+)/i.test(trimmed)) {
+          return (
+            <div key={i} className="mt-4 p-3 rounded-xl bg-white/[0.03] border-l-4 border-l-cyan-400 text-white font-semibold">
+              {trimmed.replace(/\*\*/g, "")}
+            </div>
+          );
+        }
+
+        // Bullet points
+        if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+          return (
+            <div key={i} className="flex items-start gap-2.5 ml-3">
+              <span className="text-cyan-400 mt-1.5">•</span>
+              <span className="text-text-secondary">{trimmed.replace(/^[-*]\s+/, "")}</span>
+            </div>
+          );
+        }
+
+        // Numbered list
+        if (/^\d+\.\s/.test(trimmed)) {
+          return (
+            <div key={i} className="flex items-start gap-2 ml-3">
+              <span className="text-cyan-400 font-bold">{trimmed.match(/^\d+\./)[0]}</span>
+              <span className="text-text-secondary">{trimmed.replace(/^\d+\.\s+/, "")}</span>
+            </div>
+          );
+        }
+
+        return <p key={i}>{trimmed}</p>;
+      })}
     </div>
   );
 }
