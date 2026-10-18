@@ -157,10 +157,11 @@ def build_graph():
     checkpointer = None
     if DATABASE_URL:
         try:
-            conn = psycopg.connect(DATABASE_URL)
+            conn = psycopg.connect(DATABASE_URL, autocommit=True)
             checkpointer = PostgresSaver(conn)
             checkpointer.setup()
             print("✅ Connected to PostgreSQL for conversation persistence.")
+
         except Exception as e:
             print(f"⚠️ PostgreSQL connection not available ({e}). Falling back to in-memory checkpointer.")
             checkpointer = MemorySaver()
