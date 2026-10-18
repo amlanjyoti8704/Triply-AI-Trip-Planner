@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Download, Copy, Check, Printer, Plane, Hotel, Calendar, Sparkles } from "lucide-react";
+import { Download, Copy, Check, Printer, Plane, Train, Hotel, Calendar, Sparkles } from "lucide-react";
 
 export default function TravelPlan({ result, query, threadId, visible }) {
   const [copied, setCopied] = useState(false);
@@ -21,7 +21,7 @@ export default function TravelPlan({ result, query, threadId, visible }) {
 
 ---
 
-## ✈️ Flight Details
+## ✈️🚆 Flight & Train Transit Options
 ${flight_results || "N/A"}
 
 ---
@@ -65,8 +65,8 @@ ${final_response || "N/A"}
 
   const TABS = [
     { id: "all", label: "Full Plan" },
+    { id: "transit", label: "Flights & Trains" },
     { id: "itinerary", label: "Day-by-Day" },
-    { id: "flights", label: "Flights" },
     { id: "hotels", label: "Hotels" },
   ];
 
@@ -138,14 +138,13 @@ ${final_response || "N/A"}
           </div>
         )}
 
-        {activeTab === "flights" && (
+        {activeTab === "transit" && (
           <div className="rounded-2xl border border-sky-500/15 bg-dark-950/50 p-5 sm:p-7">
             <h3 className="text-base font-bold text-sky-300 mb-4 flex items-center gap-2">
-              <Plane className="h-4 w-4" /> Flight Options
+              <span className="flex items-center gap-1.5"><Plane className="h-4 w-4 text-sky-400" /><Train className="h-4 w-4 text-amber-400" /></span>
+              <span>Flights & Train Transit Options</span>
             </h3>
-            <pre className="text-xs text-text-secondary whitespace-pre-wrap font-sans leading-relaxed">
-              {flight_results || "No flight details recorded."}
-            </pre>
+            <FormattedPlan text={flight_results || "No transit details recorded."} />
           </div>
         )}
 

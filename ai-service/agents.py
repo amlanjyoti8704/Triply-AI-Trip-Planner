@@ -54,12 +54,12 @@ class TravelState(TypedDict):
 # ── Agent Nodes ──────────────────────────────────────────────────────────────
 
 def flight_agent(state: TravelState):
-    """Search for flights using AviationStack API."""
+    """Search for flights and train options using AviationStack and Rail intelligence."""
     query = state["user_query"]
-    flight_data = search_flights(query)
+    transit_data = search_flights(query)
     return {
-        "flight_results": flight_data,
-        "messages": [AIMessage(content="Flight results fetched")],
+        "flight_results": transit_data,
+        "messages": [AIMessage(content="Transit (flight & train) options fetched")],
         "llm_calls": state.get("llm_calls", 0) + 1,
     }
 
@@ -83,7 +83,7 @@ Create a detailed, day-by-day travel itinerary.
 User Query:
 {state['user_query']}
 
-Flight Results:
+Transit Options (Flights & Trains):
 {state['flight_results']}
 
 Hotel Results:
@@ -91,13 +91,14 @@ Hotel Results:
 
 Please include:
 - Day-by-day schedule with activities
+- Clear transit logistics whether the traveler arrives by flight or by train
 - Recommended restaurants and local food
 - Transportation tips between locations
 - Estimated costs where possible
 - Must-see attractions and hidden gems
 """
     response = llm.invoke([
-        SystemMessage(content="You are an expert travel planner who creates detailed, practical itineraries."),
+        SystemMessage(content="You are an expert travel planner who creates detailed, practical itineraries with comprehensive transit options."),
         HumanMessage(content=prompt),
     ])
     return {
@@ -108,19 +109,19 @@ Please include:
 
 
 def final_agent(state: TravelState):
-    """Combine all results into a polished final travel plan."""
+    """Combine all results into a polished final travel plan with flight and train choices."""
     final_prompt = f"""
 Generate a comprehensive, well-organized final travel plan that combines all the information below.
 
 Format it with clear sections:
 1. Trip Overview
-2. Flight Details
+2. Transportation: Flights & Train Options (Provide a clear side-by-side comparison of Flights vs. Trains with approximate fares, travel times, and routes so the user can choose their preferred travel mode)
 3. Hotel Recommendations
 4. Day-by-Day Itinerary
-5. Budget Summary
+5. Budget Summary (Provide budget breakdowns for both flight-based and train-based travelers)
 6. Travel Tips
 
-Flights:
+Transit Details (Flights & Trains):
 {state['flight_results']}
 
 Hotels:
@@ -132,7 +133,7 @@ Itinerary:
 Original request: {state['user_query']}
 """
     response = llm.invoke([
-        SystemMessage(content="You are a senior travel consultant. Produce a polished, comprehensive travel plan."),
+        SystemMessage(content="You are a senior travel consultant. Produce a polished, comprehensive travel plan featuring full flight and train choices."),
         HumanMessage(content=final_prompt),
     ])
     return {

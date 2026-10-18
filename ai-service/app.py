@@ -59,7 +59,7 @@ class PlanRequest(BaseModel):
 # ── Agent metadata ───────────────────────────────────────────────────────────
 
 AGENT_META = {
-    "flight_agent":    {"icon": "✈️",  "label": "Flight Agent",    "description": "Searching flights via AviationStack"},
+    "flight_agent":    {"icon": "✈️🚆", "label": "Flight & Train Agent", "description": "Searching live flights & train routes"},
     "hotel_agent":     {"icon": "🏨", "label": "Hotel Agent",     "description": "Searching hotels via Tavily"},
     "itinerary_agent": {"icon": "🗓️",  "label": "Itinerary Agent", "description": "Generating day-by-day itinerary"},
     "final_agent":     {"icon": "🧠", "label": "Final Agent",     "description": "Compiling final travel plan"},

@@ -6,9 +6,9 @@ const AGENT_ORDER = ["flight_agent", "hotel_agent", "itinerary_agent", "final_ag
 const AGENT_CONFIG = {
   flight_agent: {
     icon: Plane,
-    label: "Flight Agent",
-    tool: "AviationStack API",
-    description: "Searching live airline databases for routes and availability",
+    label: "Flight & Train Agent",
+    tool: "AviationStack & Rail Intelligence",
+    description: "Searching live airline routes, train schedules, fares, and user transit choices",
     color: "sky",
     borderActive: "border-sky-500/25",
     bgGlow: "bg-sky-500/[0.06]",
@@ -205,33 +205,31 @@ export default function AgentPipeline({ agentStatuses, visible }) {
 /* ── Sub-renderers ── */
 
 function FlightRenderer({ rawData }) {
-  const flightBlocks = rawData
-    .split("\n\n")
-    .map((b) => b.trim())
-    .filter(Boolean);
-
-  if (!flightBlocks.length || rawData.includes("Error") || rawData.includes("No flight data")) {
-    return <p className="text-xs text-text-muted">{rawData}</p>;
+  if (!rawData || rawData.includes("No flight data available")) {
+    return <p className="text-xs text-text-muted">{rawData || "No transit details available."}</p>;
   }
 
+  // Split into major transit sections if available
+  const sections = rawData.split(/\n\n---\n\n|\n---\n/).map(s => s.trim()).filter(Boolean);
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-      {flightBlocks.map((block, i) => (
-        <div key={i} className="p-3 rounded-xl border border-sky-500/15 bg-sky-500/[0.04]">
-          <div className="flex items-center justify-between mb-2 pb-2 border-b border-white/[0.04]">
-            <span className="text-xs font-semibold text-sky-300 flex items-center gap-1.5">
-              <Plane className="h-3 w-3" />
-              {block.split("\n")[0] || "Flight"}
-            </span>
-            <span className="text-[0.58rem] font-medium text-emerald-400/80 bg-emerald-500/10 px-1.5 py-0.5 rounded">
-              Active
-            </span>
+    <div className="space-y-3">
+      {sections.map((section, idx) => {
+        const isTrain = section.includes("Train") || section.includes("🚆");
+        const isFlight = section.includes("Flight") || section.includes("✈️");
+        const isComparison = section.includes("Comparison") || section.includes("⚖️");
+
+        const borderColor = isTrain ? "border-amber-500/20 bg-amber-500/[0.03]" : isFlight ? "border-sky-500/20 bg-sky-500/[0.03]" : "border-indigo-500/20 bg-indigo-500/[0.03]";
+        const titleColor = isTrain ? "text-amber-300" : isFlight ? "text-sky-300" : "text-indigo-300";
+
+        return (
+          <div key={idx} className={`p-4 rounded-xl border ${borderColor}`}>
+            <pre className="text-xs text-text-secondary whitespace-pre-wrap font-sans leading-relaxed">
+              {section}
+            </pre>
           </div>
-          <pre className="text-[0.68rem] text-text-secondary whitespace-pre-wrap font-sans leading-relaxed">
-            {block.split("\n").slice(1).join("\n")}
-          </pre>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

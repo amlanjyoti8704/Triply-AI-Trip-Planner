@@ -4,8 +4,8 @@ const AGENTS = [
   {
     step: "01",
     icon: Plane,
-    label: "Flight Scout",
-    sub: "Live routes & airline fares",
+    label: "Transit Scout",
+    sub: "Flights, trains & fares",
     color: "text-sky-400",
     bg: "bg-sky-500/10",
     border: "border-sky-500/20",
